@@ -5,6 +5,7 @@
 // @author       brabli
 // @match        https://www.google.com/search?q=*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
+// @source       https://github.com/brabli/tampermonkey-scripts
 // ==/UserScript==
 
 (function() {
