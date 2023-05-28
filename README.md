@@ -1,3 +1,3 @@
-# tampermonkey-scripts
+# Tampermonkey Scripts
 
 My personal Tampermonkey scripts.
