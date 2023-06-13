@@ -19,5 +19,6 @@ An example header looks like:
 // @description  Development script
 // @author       brabli
 // @match        https://some/site
+// @source       https://github.com/brabli/tampermonkey-scripts
 // ==/UserScript==
 ```
