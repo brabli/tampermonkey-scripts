@@ -5,6 +5,7 @@
 // @author       brabli
 // @match        https://www.youtube.com/feed/subscriptions
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
+// @source       https://github.com/brabli/tampermonkey-scripts
 // ==/UserScript==
 
 (function() {
