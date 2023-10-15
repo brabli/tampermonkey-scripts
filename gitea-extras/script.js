@@ -66,6 +66,13 @@
                 .querySelector("div")
                 .insertAdjacentElement("afterend", checkoutBranchBtn);
         });
+
+        const smallBtnMenu = select(".small-menu-items.ui.compact.tiny.menu");
+        const closedIssuesBtn = smallBtnMenu.querySelector("a:last-child");
+        const url = new URL(closedIssuesBtn.href);
+        url.searchParams.append("sort", "recentupdate");
+        closedIssuesBtn.href = url.toString();
+        smallBtnMenu.appendChild(closedIssuesBtn);
     }
 
     if (isBranchesPage()) {
