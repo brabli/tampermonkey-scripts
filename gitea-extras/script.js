@@ -12,26 +12,25 @@
     "use strict";
 
     if (isIssuePage()) {
-        const checkoutBranch = createButton("Checkout Branch", () => {
-            copyTextToClipboard(
-                `git checkout ${generateBranchName(
-                    getIssueTitle(),
-                    getIssueNumber()
-                )}`
-            );
-        });
+        const issueName = select("h1 span#issue-title")
+            .textContent.trim()
+            .replace(/[0-9]+$/, "");
+        const issueNumber = select("h1 span.index").textContent.substring(1);
+        const branchName = generateBranchName(issueName, issueNumber);
 
-        const createBranch = createButton("Create Branch", () => {
-            copyTextToClipboard(
-                `git checkout -b ${generateBranchName(
-                    getIssueTitle(),
-                    getIssueNumber()
-                )}`
-            );
-        });
+        const checkoutCmd = getCheckoutBranchCommand(branchName);
+        const copyCheckoutCmd = copyToClipboard(checkoutCmd);
+        const checkoutBranchBtn =
+            createBtn("Checkout")("Checkout branch")(copyCheckoutCmd);
 
-        insertNextToEditButton(checkoutBranch);
-        insertNextToEditButton(createBranch);
+        const createCmd = getNewBranchCommand(branchName);
+        const newBranchCmd = copyToClipboard(createCmd);
+        const createBranchBtn =
+            createBtn("Create")("Create branch")(newBranchCmd);
+
+        const editBtn = select("button#edit-title");
+        editBtn.insertAdjacentElement("beforebegin", checkoutBranchBtn);
+        editBtn.insertAdjacentElement("beforebegin", createBranchBtn);
 
         return;
     }
@@ -50,20 +49,18 @@
             );
             const branch = generateBranchName(name, number);
 
-            const createBranchBtn = createSmallButton("Create", () => {
-                copyTextToClipboard(getNewBranchCommand(branch));
-            });
-            createBranchBtn.title = "Create branch";
-
+            const newBranchCmd = getNewBranchCommand(branch);
+            const copyNewBranchCmd = copyToClipboard(newBranchCmd);
+            const createBranchBtn =
+                createBtn("Create")("Create branch")(copyNewBranchCmd);
             issue
                 .querySelector("div")
                 .insertAdjacentElement("afterend", createBranchBtn);
 
-            const checkoutBranchBtn = createSmallButton("Checkout", () => {
-                copyTextToClipboard(getCheckoutBranchCommand(branch));
-            });
-
-            checkoutBranchBtn.title = "Checkout branch";
+            const checkoutCommand = getCheckoutBranchCommand(branch);
+            const checkoutCallback = copyToClipboard(checkoutCommand);
+            const checkoutBranchBtn =
+                createBtn("Checkout")("Checkout branch")(checkoutCallback);
 
             issue
                 .querySelector("div")
@@ -78,21 +75,30 @@
             const link = branch.querySelector("a");
             const branchName = link.innerText;
             const checkoutCommand = getCheckoutBranchCommand(branchName);
-            const copyCommamdToClipboard = copyToClipboard(checkoutCommand);
-            const btn = createBtn("Checkout")("Checkout branch")(
-                copyCommamdToClipboard
-            );
+            const copyCmd = copyToClipboard(checkoutCommand);
+            const btn = createBtn("Checkout")("Checkout branch")(copyCmd);
 
-            makeBtnSmall(btn);
+            const cell = wrapBtnInTd(btn);
+            insertElmt(cell);
 
-            const div = document.createElement("td");
-            div.className = "two wide ui";
-            div.appendChild(btn);
+            /**
+             * @param {HTMLButtonElement} btn
+             * @returns {HTMLTableCellElement}
+             */
+            function wrapBtnInTd(btn) {
+                const td = document.createElement("td");
+                td.className = "two wide ui";
+                td.appendChild(btn);
 
-            const b = branch.querySelector("td");
+                return td;
+            }
 
-            if (b) {
-                b.insertAdjacentElement("beforebegin", div);
+            /**
+             * @param {HTMLTableCellElement} cell
+             */
+            function insertElmt(cell) {
+                const firstCell = branch.querySelector("td");
+                firstCell.insertAdjacentElement("beforebegin", cell);
             }
         });
     }
@@ -142,35 +148,13 @@ function isBranchesPage() {
 }
 
 /**
- * @param {HTMLElement} elem An HTML element
- */
-function insertNextToEditButton(elem) {
-    getEditButton().insertAdjacentElement("beforebegin", elem);
-}
-
-/**
- * @deprecated
- * @param {string} text Button text
- * @param {Function} callback Callback
- * @returns {HTMLButtonElement} Button
- */
-function createButton(text, callback) {
-    const btn = document.createElement("button");
-    btn.className = "ui basic button secondary";
-    btn.innerText = text;
-    btn.addEventListener("click", callback);
-
-    return btn;
-}
-
-/**
  * @param {string} displayText
  * @returns {(titleText: string) => (onClickCallback: Function) => HTMLButtonElement}
  */
 function createBtn(displayText) {
     const btn = document.createElement("button");
     btn.innerText = displayText;
-    btn.className = "ui basic button secondary";
+    btn.className = "ui basic button secondary compact gt-mr-4 small";
 
     return (titleText) => {
         btn.title = titleText;
@@ -183,33 +167,11 @@ function createBtn(displayText) {
 }
 
 /**
- * Makes a button small
- * @param {HTMLButtonElement} btn
- */
-function makeBtnSmall(btn) {
-    btn.classList.add(["compact", "gt-mr-4", "small"]);
-}
-
-/**
  * @param {string} text
  * @returns {() => void} Function that copies the passed in text to the clipboard
  */
 function copyToClipboard(text) {
     return () => navigator.clipboard.writeText(text);
-}
-
-/**
- * @deprecated
- * @param {string} buttonText
- * @param {Function} callback
- * @returns {HTMLButtonElement}
- */
-function createSmallButton(buttonText, callback) {
-    const btn = createButton(buttonText, callback);
-    const classes = "ui basic compact gt-mr-4 small button secondary";
-    btn.classList.add(...classes.split(" "));
-
-    return btn;
 }
 
 /**
@@ -223,41 +185,10 @@ function generateBranchName(issueName, issueNumber) {
     const issueTitleKebabCase = titleNoSymbols
         .toLowerCase()
         .trim()
-        .split(/\s+/)
+        .split(/\s+/) // Underscores slip through
         .join("-");
 
     return `${branch}-${issueTitleKebabCase}`;
-}
-
-/**
- * @returns {string} Issue number
- */
-function getIssueNumber() {
-    return select("h1 span.index").textContent.substring(1);
-}
-
-/**
- * @returns {string}
- */
-function getIssueTitle() {
-    return select("h1 span#issue-title")
-        .textContent.trim()
-        .replace(/[0-9]+$/, "");
-}
-
-/**
- * @returns {HTMLElement}
- */
-function getEditButton() {
-    return select("button#edit-title");
-}
-
-/**
- * @deprecated
- * @param {string} text Text to copy to the clipboard
- */
-function copyTextToClipboard(text) {
-    navigator.clipboard.writeText(text);
 }
 
 /**
