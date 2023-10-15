@@ -36,18 +36,22 @@
         return;
     }
 
-    if (isIssueList()) {
-        for (const issue of document.querySelectorAll("div.issue.list > li")) {
-            const issueName = issue.querySelector("a.title");
-            const issueNumber = issue
-                .querySelector("a.index")
-                .textContent.replaceAll(/[^0-9]/g, "");
-            const branch = generateBranchName(
-                issueName.textContent,
-                issueNumber
+    if (isIssuesPage()) {
+        const listOfIssues = document.querySelectorAll("div.issue.list > li");
+
+        listOfIssues.forEach((issue) => {
+            const issueNameElmt = issue.querySelector("a.title");
+            const issueNumberElmt = issue.querySelector("a.index");
+
+            const name = issueNameElmt.textContent;
+            const number = issueNumberElmt.textContent.replaceAll(
+                /[^0-9]/g,
+                ""
             );
+            const branch = generateBranchName(name, number);
+
             const createBranchBtn = createSmallButton("Create", () => {
-                copyTextToClipboard(`git checkout -b ${branch}`);
+                copyTextToClipboard(getNewBranchCommand(branch));
             });
             createBranchBtn.title = "Create branch";
 
@@ -56,7 +60,7 @@
                 .insertAdjacentElement("afterend", createBranchBtn);
 
             const checkoutBranchBtn = createSmallButton("Checkout", () => {
-                copyTextToClipboard(`git checkout ${branch}`);
+                copyTextToClipboard(getCheckoutBranchCommand(branch));
             });
 
             checkoutBranchBtn.title = "Checkout branch";
@@ -64,15 +68,77 @@
             issue
                 .querySelector("div")
                 .insertAdjacentElement("afterend", checkoutBranchBtn);
-        }
+        });
+    }
+
+    if (isBranchesPage()) {
+        const branches = document.querySelectorAll("table tbody tr");
+
+        branches.forEach((branch) => {
+            const link = branch.querySelector("a");
+            const branchName = link.innerText;
+            const checkoutCommand = getCheckoutBranchCommand(branchName);
+            const copyCommamdToClipboard = copyToClipboard(checkoutCommand);
+            const btn = createBtn("Checkout")("Checkout branch")(
+                copyCommamdToClipboard
+            );
+
+            makeBtnSmall(btn);
+
+            const div = document.createElement("td");
+            div.className = "two wide ui";
+            div.appendChild(btn);
+
+            const b = branch.querySelector("td");
+
+            if (b) {
+                b.insertAdjacentElement("beforebegin", div);
+            }
+        });
     }
 })();
 
 /**
- * @returns {boolean} True if current page is the issue list
+ * @param {string} branch
+ * @returns {string} Create and checkout a new git branch command
  */
-function isIssueList() {
-    return select("#issue-actions") && select(".issue.list");
+function getNewBranchCommand(branch) {
+    return `git checkout -b ${branch}`;
+}
+
+/**
+ * @param {string} branch
+ * @returns {string} Checkout an existing git branch command
+ */
+function getCheckoutBranchCommand(branch) {
+    return `git checkout ${branch}`;
+}
+
+/**
+ * @returns {boolean} True if current page is the repo's main issue page
+ */
+function isIssuesPage() {
+    return (
+        document.querySelector("#issue-actions") &&
+        document.querySelector(".issue.list")
+    );
+}
+
+/**
+ * @returns {boolean} True if current page is a specific issue page
+ */
+function isIssuePage() {
+    return (
+        document.querySelector("h1 span#issue-title") &&
+        document.querySelector("h1 span.index")
+    );
+}
+
+/**
+ * @returns {boolean} True if the current page is the repo's branches page
+ */
+function isBranchesPage() {
+    return !!document.querySelector(".repository.branches");
 }
 
 /**
@@ -83,6 +149,7 @@ function insertNextToEditButton(elem) {
 }
 
 /**
+ * @deprecated
  * @param {string} text Button text
  * @param {Function} callback Callback
  * @returns {HTMLButtonElement} Button
@@ -97,6 +164,42 @@ function createButton(text, callback) {
 }
 
 /**
+ * @param {string} displayText
+ * @returns {(titleText: string) => (onClickCallback: Function) => HTMLButtonElement}
+ */
+function createBtn(displayText) {
+    const btn = document.createElement("button");
+    btn.innerText = displayText;
+    btn.className = "ui basic button secondary";
+
+    return (titleText) => {
+        btn.title = titleText;
+
+        return (onClickCallback) => {
+            btn.addEventListener("click", onClickCallback);
+            return btn;
+        };
+    };
+}
+
+/**
+ * Makes a button small
+ * @param {HTMLButtonElement} btn
+ */
+function makeBtnSmall(btn) {
+    btn.classList.add(["compact", "gt-mr-4", "small"]);
+}
+
+/**
+ * @param {string} text
+ * @returns {() => void} Function that copies the passed in text to the clipboard
+ */
+function copyToClipboard(text) {
+    return () => navigator.clipboard.writeText(text);
+}
+
+/**
+ * @deprecated
  * @param {string} buttonText
  * @param {Function} callback
  * @returns {HTMLButtonElement}
@@ -127,13 +230,6 @@ function generateBranchName(issueName, issueNumber) {
 }
 
 /**
- * @returns {boolean} True if current page is the issue page
- */
-function isIssuePage() {
-    return select("h1 span#issue-title") && select("h1 span.index");
-}
-
-/**
  * @returns {string} Issue number
  */
 function getIssueNumber() {
@@ -157,6 +253,7 @@ function getEditButton() {
 }
 
 /**
+ * @deprecated
  * @param {string} text Text to copy to the clipboard
  */
 function copyTextToClipboard(text) {
