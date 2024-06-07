@@ -12,30 +12,34 @@
     "use strict";
 
     if (isIssuePage()) {
-        const issueName = select("h1 span#issue-title")
-            .textContent.trim()
-            .replace(/[0-9]+$/, "");
-        const issueNumber = select("h1 span.index").textContent.substring(1);
-        const branchName = generateBranchName(issueName, issueNumber);
+        console.log("I am issue page.");
+        const issueName = findIssueTitle();
+        const issueNumber = findIssueNumber();
 
-        const checkoutCmd = getCheckoutBranchCommand(branchName);
-        const copyCheckoutCmd = copyToClipboard(checkoutCmd);
-        const checkoutBranchBtn =
-            createBtn("Checkout")("Checkout branch")(copyCheckoutCmd);
+        const generatedBranchName = generateBranchName(issueName, issueNumber);
 
-        const createCmd = getNewBranchCommand(branchName);
-        const newBranchCmd = copyToClipboard(createCmd);
-        const createBranchBtn =
-            createBtn("Create")("Create branch")(newBranchCmd);
+        const checkoutCommandString = getCheckoutBranchCommand(generatedBranchName);
+        const copyCheckoutCommandToClipboard = copyToClipboard(checkoutCommandString);
 
-        const editBtn = select("button#edit-title");
-        editBtn.insertAdjacentElement("beforebegin", checkoutBranchBtn);
-        editBtn.insertAdjacentElement("beforebegin", createBranchBtn);
+        const checkoutBranchGiteaButton =
+            createGiteaButton("Checkout")("Checkout branch")(copyCheckoutCommandToClipboard);
+
+        const createBranchCommandString = getNewBranchCommand(generatedBranchName);
+        const copyNewBranchCommandToClipboard = copyToClipboard(createBranchCommandString);
+        const createBranchGiteaButton =
+            createGiteaButton("Create")("Create branch")(copyNewBranchCommandToClipboard);
+
+        // Find edit button to insert custom buttons next to it
+        const editBtn = select("button#issue-title-edit-show")("Failed to find edit button.");
+        editBtn.insertAdjacentElement("beforebegin", checkoutBranchGiteaButton);
+        editBtn.insertAdjacentElement("beforebegin", createBranchGiteaButton);
 
         return;
     }
 
     if (isIssuesPage()) {
+        console.log('I am issues page');
+
         const listOfIssues = document.querySelectorAll("div.issue.list > li");
 
         listOfIssues.forEach((issue) => {
@@ -52,7 +56,7 @@
             const newBranchCmd = getNewBranchCommand(branch);
             const copyNewBranchCmd = copyToClipboard(newBranchCmd);
             const createBranchBtn =
-                createBtn("Create")("Create branch")(copyNewBranchCmd);
+                createGiteaButton("Create")("Create branch")(copyNewBranchCmd);
             issue
                 .querySelector("div")
                 .insertAdjacentElement("afterend", createBranchBtn);
@@ -60,7 +64,7 @@
             const checkoutCommand = getCheckoutBranchCommand(branch);
             const checkoutCallback = copyToClipboard(checkoutCommand);
             const checkoutBranchBtn =
-                createBtn("Checkout")("Checkout branch")(checkoutCallback);
+                createGiteaButton("Checkout")("Checkout branch")(checkoutCallback);
 
             issue
                 .querySelector("div")
@@ -83,7 +87,7 @@
             const branchName = link.innerText;
             const checkoutCommand = getCheckoutBranchCommand(branchName);
             const copyCmd = copyToClipboard(checkoutCommand);
-            const btn = createBtn("Checkout")("Checkout branch")(copyCmd);
+            const btn = createGiteaButton("Checkout")("Checkout branch")(copyCmd);
 
             const cell = wrapBtnInTd(btn);
             insertElmt(cell);
@@ -131,20 +135,15 @@ function getCheckoutBranchCommand(branch) {
  * @returns {boolean} True if current page is the repo's main issue page
  */
 function isIssuesPage() {
-    return (
-        document.querySelector("#issue-actions") &&
-        document.querySelector(".issue.list")
-    );
+    return null !== document.querySelector('div[role="main"][aria-label="Issues"]')
 }
 
 /**
  * @returns {boolean} True if current page is a specific issue page
  */
 function isIssuePage() {
-    return (
-        document.querySelector("h1 span#issue-title") &&
-        document.querySelector("h1 span.index")
-    );
+    console.log("Checking for issue page...");
+    return null !== document.querySelector('div[role="main"][aria-label^="#"]')
 }
 
 /**
@@ -158,16 +157,17 @@ function isBranchesPage() {
  * @param {string} displayText
  * @returns {(titleText: string) => (onClickCallback: Function) => HTMLButtonElement}
  */
-function createBtn(displayText) {
+function createGiteaButton(displayText) {
     const btn = document.createElement("button");
     btn.innerText = displayText;
-    btn.className = "ui basic button secondary compact gt-mr-4 small";
+    btn.className = "ui small basic button";
 
     return (titleText) => {
         btn.title = titleText;
 
         return (onClickCallback) => {
             btn.addEventListener("click", onClickCallback);
+
             return btn;
         };
     };
@@ -187,8 +187,8 @@ function copyToClipboard(text) {
  * @returns {string} Generated branch name
  */
 function generateBranchName(issueName, issueNumber) {
-    let branch = `issue/${issueNumber}`;
-    const titleNoSymbols = issueName.replaceAll(/[^\w\s]/g, "");
+    const branch = `issue/${issueNumber}`;
+    const titleNoSymbols = issueName.replaceAll(/[^\w\s]/g, "").replaceAll(/_/g, "");
     const issueTitleKebabCase = titleNoSymbols
         .toLowerCase()
         .trim()
@@ -200,17 +200,57 @@ function generateBranchName(issueName, issueNumber) {
 
 /**
  * Wrapper around querySelector that throws if an element is not found.
+ *
  * @param {string} cssSelector CSS selector string
- * @returns {HTMLElement} Selected element or null
+ * @returns {function(string): HTMLElement}} Function that accepts a custom error message and returns the element if found.
  */
 function select(cssSelector) {
     const elmt = document.querySelector(cssSelector);
 
-    if (!elmt) {
-        throw new Error(
-            `Failed to find an element with the selector "${cssSelector}"!`
-        );
-    }
+    return (errorMsg) => {
+        if (!elmt) {
+            throw new Error(`${errorMsg} ("${cssSelector}")`);
+        }
 
-    return elmt;
+        return elmt;
+    }
+}
+
+/**
+ * @returns {string} Extracted issue title
+ */
+function findIssueTitle() {
+    const mainElmt = select('div[role="main"]')("Failed to find main element.");
+    const ariaLabelValue = getAttributeValue(mainElmt)('aria-label');
+
+    const issueTitle = ariaLabelValue.replace(/#\d+ \- /, "");
+
+    return issueTitle;
+}
+
+/**
+ * @returns {string} Extracted issue number
+ */
+function findIssueNumber() {
+    const mainElmt = select('div[role="main"]')("Failed to find main element.");
+    const ariaLabelValue = getAttributeValue(mainElmt)('aria-label');
+
+    const issueNumber = ariaLabelValue.match(/^#(\d+)/)[1];
+
+    return issueNumber;
+}
+
+/**
+ * @param {HTMLElement} elmt
+ */
+function getAttributeValue(elmt) {
+    return (attributeName) => {
+        const attrValue = elmt.getAttribute(attributeName);
+
+        if (null === attrValue) {
+            throw new Error(`Failed to find an [${attributeName}] attribute on the provided HTMLELement.`);
+        }
+
+        return attrValue;
+    }
 }
