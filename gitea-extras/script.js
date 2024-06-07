@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Gitea Extras
-// @version      0.2.0
+// @version      0.2.1
 // @description  Adds buttons to Gitea to quickly checkout and create branches, plus other tweaks for workflow improvements.
 // @author       brabli
 // @match        https://*.co.uk/*
