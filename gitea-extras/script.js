@@ -12,35 +12,39 @@
     "use strict";
 
     if (isIssuePage()) {
-        console.log("I am issue page.");
+        // Generate branch name
         const issueName = findIssueTitle();
         const issueNumber = findIssueNumber();
-
         const generatedBranchName = generateBranchName(issueName, issueNumber);
 
+        // Create checkout branch button
         const checkoutCommandString = getCheckoutBranchCommand(generatedBranchName);
         const copyCheckoutCommandToClipboard = copyToClipboard(checkoutCommandString);
-
         const checkoutBranchGiteaButton =
             createGiteaButton("Checkout")("Checkout branch")(copyCheckoutCommandToClipboard);
 
+        // Create create branch button
         const createBranchCommandString = getNewBranchCommand(generatedBranchName);
         const copyNewBranchCommandToClipboard = copyToClipboard(createBranchCommandString);
         const createBranchGiteaButton =
             createGiteaButton("Create")("Create branch")(copyNewBranchCommandToClipboard);
 
-        // Find edit button to insert custom buttons next to it
-        const editBtn = select("button#issue-title-edit-show")("Failed to find edit button.");
-        editBtn.insertAdjacentElement("beforebegin", checkoutBranchGiteaButton);
-        editBtn.insertAdjacentElement("beforebegin", createBranchGiteaButton);
+        // Find edit button to insert custom buttons next to it.
+        const existingEditButton = select("button#issue-title-edit-show")("Failed to find existing edit button.");
+        existingEditButton.insertAdjacentElement("beforebegin", checkoutBranchGiteaButton);
+        existingEditButton.insertAdjacentElement("beforebegin", createBranchGiteaButton);
 
         return;
     }
 
+    // @TODO Broken, needs fixing
     if (isIssuesPage()) {
-        console.log('I am issues page');
+        return;
 
         const listOfIssues = document.querySelectorAll("div.issue.list > li");
+        if (listOfIssues.length === 0) {
+            throw new Error("No issues found.");
+        }
 
         listOfIssues.forEach((issue) => {
             const issueNameElmt = issue.querySelector("a.title");
@@ -71,7 +75,7 @@
                 .insertAdjacentElement("afterend", checkoutBranchBtn);
         });
 
-        const smallBtnMenu = select(".small-menu-items.ui.compact.tiny.menu");
+        const smallBtnMenu = select(".small-menu-items.ui.compact.tiny.menu")("Failed to find small button menu.");
         const closedIssuesBtn = smallBtnMenu.querySelector("a:last-child");
         const url = new URL(closedIssuesBtn.href);
         url.searchParams.append("sort", "recentupdate");
