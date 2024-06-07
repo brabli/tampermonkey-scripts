@@ -8,6 +8,10 @@ After installing [Tampermonkey](https://www.tampermonkey.net/) you should naviga
 
 An example of a raw script URL is "https://raw.githubusercontent.com/brabli/tampermonkey-scripts/main/gitea-extras/script.js".
 
+## Updating
+
+Click the Tampermonkey browser extension icon and click `Utilities -> Check for userscript updates`.
+
 ## My Development Workflow
 
 My workflow developing Tampermonkey scripts is to add a new script in my Tampermonkey dashboard with just the required header comment.
