@@ -11,7 +11,7 @@
 (function() {
     "use strict";
 
-    if (isIssuePage()) {
+    if (isSingleIssuePage()) {
         // Generate branch name
         const issueName = findIssueTitle();
         const issueNumber = findIssueNumber();
@@ -19,13 +19,13 @@
 
         // Create checkout branch button
         const checkoutCommandString = getCheckoutBranchCommand(generatedBranchName);
-        const copyCheckoutCommandToClipboard = copyToClipboard(checkoutCommandString);
+        const copyCheckoutCommandToClipboard = copyToClipboardCallback(checkoutCommandString);
         const checkoutBranchGiteaButton =
             createGiteaButton("Checkout")("Checkout branch")(copyCheckoutCommandToClipboard);
 
         // Create create branch button
         const createBranchCommandString = getNewBranchCommand(generatedBranchName);
-        const copyNewBranchCommandToClipboard = copyToClipboard(createBranchCommandString);
+        const copyNewBranchCommandToClipboard = copyToClipboardCallback(createBranchCommandString);
         const createBranchGiteaButton =
             createGiteaButton("Create")("Create branch")(copyNewBranchCommandToClipboard);
 
@@ -37,14 +37,24 @@
         return;
     }
 
-    if (isBranchesPage()) {
+    else if (isCodeTab()) {
+        const clonePanel = select(".clone-panel.ui.action.tiny.input")("Failed to find clone panel.");
+        const gitCloneUrl = document.getElementById('repo-clone-url')?.value
+        const gitCloneCommand = `git clone ${gitCloneUrl}`;
+        const copyGitCloneCommand = copyToClipboardCallback(gitCloneCommand);
+
+        const btn = createGiteaButton('Git Clone')('Copy a git clone command using SSH to the clipboard')(copyGitCloneCommand);
+        clonePanel.prepend(btn)
+    }
+
+    else if (isBranchesPage()) {
         const branches = document.querySelectorAll("table tbody tr");
 
         branches.forEach((branch) => {
             const link = branch.querySelector("a");
             const branchName = link.innerText;
             const checkoutCommand = getCheckoutBranchCommand(branchName);
-            const copyCmd = copyToClipboard(checkoutCommand);
+            const copyCmd = copyToClipboardCallback(checkoutCommand);
             const btn = createGiteaButton("Checkout")("Checkout branch")(copyCmd);
 
             const cell = wrapBtnInTd(btn);
@@ -99,7 +109,7 @@ function isIssuesPage() {
 /**
  * @returns {boolean} True if current page is a specific issue page
  */
-function isIssuePage() {
+function isSingleIssuePage() {
     console.log("Checking for issue page...");
     return null !== document.querySelector('div[role="main"][aria-label^="#"]')
 }
@@ -109,6 +119,13 @@ function isIssuePage() {
  */
 function isBranchesPage() {
     return !!document.querySelector(".repository.branches");
+}
+
+/**
+ * @returns {boolean} True if the current page is the repo's code tab
+ */
+function isCodeTab() {
+    return !!document.querySelector(".repository.file.list");
 }
 
 /**
@@ -135,7 +152,7 @@ function createGiteaButton(displayText) {
  * @param {string} text
  * @returns {() => void} Function that copies the passed in text to the clipboard
  */
-function copyToClipboard(text) {
+function copyToClipboardCallback(text) {
     return () => navigator.clipboard.writeText(text);
 }
 
@@ -212,3 +229,4 @@ function getAttributeValue(elmt) {
         return attrValue;
     }
 }
+
