@@ -1,5 +1,10 @@
 # Changelog
 
+## XXXX-XX-XX - X.X.X
+
+## XXXX-XX-XX - X.X.X
+- Add a Git Clone button to copy a git clone command to the clipboard using the repo SSH url
+
 ## 2024-06-07 - 0.2.1
 - Fix buttons not generating on issue page after Gitea update
 - Fix underscores not being removed while generating branch name
