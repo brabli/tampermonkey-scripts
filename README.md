@@ -2,21 +2,27 @@
 
 Some of my personal Tampermonkey scripts.
 
-## Installation
+## Installing Scripts
 
 After installing [Tampermonkey](https://www.tampermonkey.net/) you should navigate to the dashboard, click on the `Utilities` tab and paste the **raw** script URL into the `Import from URL` box.
 
-An example of a raw script URL is "https://raw.githubusercontent.com/brabli/tampermonkey-scripts/main/gitea-extras/script.js".
+> An example of a **raw** script URL is:
+> "https://raw.githubusercontent.com/brabli/tampermonkey-scripts/main/gitea-extras/script.js".
 
-## Updating
+## Updating Scripts
 
-Click the Tampermonkey browser extension icon and click `Utilities -> Check for userscript updates`.
+Click the Tampermonkey browser extension icon and navigate to:
+```
+Utilities -> Check for userscript updates
+```
 
 ## My Development Workflow
 
 My workflow developing Tampermonkey scripts is to add a new script in my Tampermonkey dashboard with just the required header comment.
 
 The header will contain a `@require` tag pointing to the local file I am working on, so I can get instant feedback.
+
+**!!! NOTE !!!** If you get an error in the Chrome console that says `"Access to this or all local files is forbidden!"`then follow the accepted answer [here](https://stackoverflow.com/a/73994197/13073160).
 
 Unfortunately due to an old [bug in Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1266960), developing local Tampermonkey scripts in Firefox is not currently possible. It is possible in Chrome however, so I develop scripts using that at present. [Revelent GitHub issue here.](https://github.com/Tampermonkey/tampermonkey/issues/347)
 
