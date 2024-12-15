@@ -2,7 +2,7 @@
 
 ## XXXX-XX-XX - X.X.X
 
-## XXXX-XX-XX - X.X.X
+## 2024-12-15 - 0.3.0
 - Add a Git Clone button to copy a git clone command to the clipboard using the repo SSH url
 - Selecting "Closed" issues on issues page will show the most recently updated closed issues by default
 - Add a "Checkout" button next to all issues on issues index page
