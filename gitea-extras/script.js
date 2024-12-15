@@ -37,6 +37,14 @@
         return;
     }
 
+    else if (isAllIssuesPage()) {
+        const closedBtn = document.querySelector('a[href*=closed]');
+        const defaultUrl = closedBtn.href;
+        const closedBtnUrl = new URL(defaultUrl)
+        closedBtnUrl.searchParams.set('sort', 'recentupdate');
+        closedBtn.href = closedBtnUrl.toString()
+    }
+
     else if (isCodeTab()) {
         const clonePanel = select(".clone-panel.ui.action.tiny.input")("Failed to find clone panel.");
         const gitCloneUrl = document.getElementById('repo-clone-url')?.value
@@ -102,7 +110,7 @@ function getCheckoutBranchCommand(branch) {
 /**
  * @returns {boolean} True if current page is the repo's main issue page
  */
-function isIssuesPage() {
+function isAllIssuesPage() {
     return null !== document.querySelector('div[role="main"][aria-label="Issues"]')
 }
 
@@ -110,7 +118,6 @@ function isIssuesPage() {
  * @returns {boolean} True if current page is a specific issue page
  */
 function isSingleIssuePage() {
-    console.log("Checking for issue page...");
     return null !== document.querySelector('div[role="main"][aria-label^="#"]')
 }
 
