@@ -51,7 +51,8 @@
             const branchName = generateBranchName(issueName, issueNumber);
             const checkoutCommand = `git checkout -B ${branchName}`
             const btn = createGiteaButton('Checkout')('Copy a git clone command using SSH to the clipboard')(copyToClipboardCallback(checkoutCommand));
-            //issueElmt.querySelector('a.issue-title').insertAdjacentElement(btn)
+            btn.classList.remove('small')
+            btn.classList.add('tiny')
             issueElmt.firstElementChild.nextElementSibling.insertAdjacentElement('beforebegin', btn)
         })
     }
