@@ -8,7 +8,7 @@
 // @website      https://github.com/brabli/tampermonkey-scripts
 // ==/UserScript==
 
-(function () {
+(function() {
     "use strict";
 
     if (isIssuePage()) {
@@ -35,52 +35,6 @@
         existingEditButton.insertAdjacentElement("beforebegin", createBranchGiteaButton);
 
         return;
-    }
-
-    // @TODO Broken, needs fixing
-    if (isIssuesPage()) {
-        return;
-
-        const listOfIssues = document.querySelectorAll("div.issue.list > li");
-        if (listOfIssues.length === 0) {
-            throw new Error("No issues found.");
-        }
-
-        listOfIssues.forEach((issue) => {
-            const issueNameElmt = issue.querySelector("a.title");
-            const issueNumberElmt = issue.querySelector("a.index");
-
-            const name = issueNameElmt.textContent;
-            const number = issueNumberElmt.textContent.replaceAll(
-                /[^0-9]/g,
-                ""
-            );
-            const branch = generateBranchName(name, number);
-
-            const newBranchCmd = getNewBranchCommand(branch);
-            const copyNewBranchCmd = copyToClipboard(newBranchCmd);
-            const createBranchBtn =
-                createGiteaButton("Create")("Create branch")(copyNewBranchCmd);
-            issue
-                .querySelector("div")
-                .insertAdjacentElement("afterend", createBranchBtn);
-
-            const checkoutCommand = getCheckoutBranchCommand(branch);
-            const checkoutCallback = copyToClipboard(checkoutCommand);
-            const checkoutBranchBtn =
-                createGiteaButton("Checkout")("Checkout branch")(checkoutCallback);
-
-            issue
-                .querySelector("div")
-                .insertAdjacentElement("afterend", checkoutBranchBtn);
-        });
-
-        const smallBtnMenu = select(".small-menu-items.ui.compact.tiny.menu")("Failed to find small button menu.");
-        const closedIssuesBtn = smallBtnMenu.querySelector("a:last-child");
-        const url = new URL(closedIssuesBtn.href);
-        url.searchParams.append("sort", "recentupdate");
-        closedIssuesBtn.href = url.toString();
-        smallBtnMenu.appendChild(closedIssuesBtn);
     }
 
     if (isBranchesPage()) {
