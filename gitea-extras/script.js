@@ -43,6 +43,17 @@
         const closedBtnUrl = new URL(defaultUrl)
         closedBtnUrl.searchParams.set('sort', 'recentupdate');
         closedBtn.href = closedBtnUrl.toString()
+
+        const issueElements = document.querySelectorAll('#issue-list > .flex-item')
+        issueElements.forEach(issueElmt => {
+            const issueName = issueElmt.querySelector('a.issue-title')?.textContent;
+            const issueNumber = issueElmt.querySelector('a.index')?.textContent;
+            const branchName = generateBranchName(issueName, issueNumber);
+            const checkoutCommand = `git checkout -B ${branchName}`
+            const btn = createGiteaButton('Checkout')('Copy a git clone command using SSH to the clipboard')(copyToClipboardCallback(checkoutCommand));
+            //issueElmt.querySelector('a.issue-title').insertAdjacentElement(btn)
+            issueElmt.firstElementChild.nextElementSibling.insertAdjacentElement('beforebegin', btn)
+        })
     }
 
     else if (isCodeTab()) {
@@ -164,12 +175,15 @@ function copyToClipboardCallback(text) {
 }
 
 /**
+ * Generate a branch name from an issue name and number.
+ *
  * @param {string} issueName
  * @param {string} issueNumber
  * @returns {string} Generated branch name
  */
 function generateBranchName(issueName, issueNumber) {
-    const branch = `issue/${issueNumber}`;
+    const sanitisedIssueNumber = issueNumber.trim().replace(/\D/, '');
+    const branch = `issue/${sanitisedIssueNumber}`;
     const titleNoSymbols = issueName.replaceAll(/[^\w\s]/g, "").replaceAll(/_/g, "");
     const issueTitleKebabCase = titleNoSymbols
         .toLowerCase()
